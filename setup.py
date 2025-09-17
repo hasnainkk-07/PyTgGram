@@ -31,7 +31,7 @@ if not requirements:
 
 setup(
     name="test-pytggram",
-    version="1.0.0",
+    version="1.0.1",
     author="Endtrz",
     author_email="endtrz@gmail.com",
     description="An advanced, easy-to-use Telegram Bot Framework with MongoDB support",
