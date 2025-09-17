@@ -4,7 +4,7 @@ Test filter system
 """
 import re
 from pytggram.filters import Command, Text, Regex, Private, Group, CallbackData, InlinePattern
-from fixtures.sample_data import SAMPLE_MESSAGE, SAMPLE_CALLBACK, SAMPLE_INLINE_QUERY
+from tests.fixtures.sample_data import SAMPLE_MESSAGE, SAMPLE_CALLBACK, SAMPLE_INLINE_QUERY
 
 def test_command_filter():
     """Test command filter"""
