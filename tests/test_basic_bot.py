@@ -4,7 +4,7 @@ Test basic bot functionality
 """
 import asyncio
 from pytggram import Client, filters
-from fixtures.sample_data import SAMPLE_MESSAGE, SAMPLE_USER
+from tests.fixtures.sample_data import SAMPLE_MESSAGE, SAMPLE_USER
 
 # Create a basic bot for testing
 bot = Client("TEST_TOKEN")
