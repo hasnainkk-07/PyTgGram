@@ -20,7 +20,7 @@ class Client:
         
         self.token = token
         self.api_url = f"https://api.telegram.org/bot{self.token}"
-        self.session = session or aiohttp.ClientSession()
+        self.session = session  # Don't create session here
         self.logger = setup_logger('pytggram')
         self.storage = MemoryStorage()
         
@@ -37,6 +37,11 @@ class Client:
         
         # Auto-register built-in handlers
         self._register_builtin_handlers()
+    
+    async def _create_session(self):
+        """Create aiohttp session when needed"""
+        if self.session is None or self.session.closed:
+            self.session = aiohttp.ClientSession()
     
     def _register_builtin_handlers(self):
         """Register built-in handlers for convenience"""
@@ -106,6 +111,9 @@ class Client:
     async def _make_request(self, method: str, data: Dict[str, Any] = None, 
                           retry_count: int = 0) -> Dict[str, Any]:
         """Make a request to Telegram API with flood control and retry logic"""
+        # Ensure session exists
+        await self._create_session()
+        
         url = f"{self.api_url}/{method}"
         
         # Add delay between requests to avoid flood
@@ -165,6 +173,9 @@ class Client:
         """Start the bot with enhanced polling"""
         self.running = True
         
+        # Ensure session exists before starting
+        await self._create_session()
+        
         # Test the token
         bot_info = await self.get_me()
         self.logger.info(f"Bot started as @{bot_info.username} (ID: {bot_info.id})")
@@ -185,14 +196,16 @@ class Client:
     async def stop(self):
         """Stop the bot gracefully"""
         self.running = False
-        if not self.session.closed:
+        if self.session and not self.session.closed:
             await self.session.close()
     
     def run(self, poll_interval: float = 0.1, allowed_updates: List[str] = None):
         """Run the bot until stopped with better error handling"""
-        loop = asyncio.get_event_loop()
-        
+        # Create new event loop for running the bot
         try:
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            
             self.logger.info("Starting bot...")
             loop.run_until_complete(self.start(poll_interval, allowed_updates))
         except KeyboardInterrupt:
@@ -200,7 +213,9 @@ class Client:
         except Exception as e:
             self.logger.error(f"Bot crashed: {e}")
         finally:
-            loop.run_until_complete(self.stop())
+            if loop.is_running():
+                loop.run_until_complete(self.stop())
+            loop.close()
     
     # Make all API methods available directly on client
     async def get_me(self):
