@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Optional, Any, Dict
+from typing import Optional
 from .message import Message
 from .user import User
 
@@ -30,5 +30,11 @@ class CallbackQuery:
     
     async def answer(self, text: str = None, show_alert: bool = False, url: str = None, cache_time: int = None):
         """Answer this callback query"""
-        # This will be implemented in the client
-        pass
+        from ..methods import answer_callback_query
+        return await answer_callback_query(
+            self.id,
+            text=text,
+            show_alert=show_alert,
+            url=url,
+            cache_time=cache_time
+        )
