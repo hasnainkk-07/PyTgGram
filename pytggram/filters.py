@@ -73,9 +73,11 @@ class Command(Filter):
 
 class Text(Filter):
     """Filter for text messages"""
-    def __init__(self, text: str = None, contains: str = None, ignore_case: bool = False):
+    def __init__(self, text: str = None, contains: str = None, startswith: str = None, endswith: str = None, ignore_case: bool = False):
         self.text = text
         self.contains = contains
+        self.startswith = startswith
+        self.endswith = endswith
         self.ignore_case = ignore_case
     
     def check(self, update) -> bool:
@@ -91,6 +93,14 @@ class Text(Filter):
         if self.contains:
             compare_contains = self.contains.lower() if self.ignore_case else self.contains
             return compare_contains in text
+        
+        if self.startswith:
+            compare_start = self.startswith.lower() if self.ignore_case else self.startswith
+            return text.startswith(compare_start)
+        
+        if self.endswith:
+            compare_end = self.endswith.lower() if self.ignore_case else self.endswith
+            return text.endswith(compare_end)
         
         return bool(text)
 
@@ -145,23 +155,6 @@ class InlinePattern(Filter):
         
         return update.query.startswith(self.pattern)
 
-class State(Filter):
-    """Filter for user state"""
-    def __init__(self, state: str):
-        self.state = state
-    
-    def check(self, update) -> bool:
-        # This requires state management to be implemented
-        # For now, it's a placeholder
-        return False
-
-class Admin(Filter):
-    """Filter for admin users"""
-    def check(self, update) -> bool:
-        # This requires admin list management
-        # For now, it's a placeholder
-        return False
-
 class Private(Filter):
     """Filter for private chats"""
     def check(self, update) -> bool:
@@ -181,4 +174,20 @@ class Channel(Filter):
     def check(self, update) -> bool:
         if isinstance(update, Message) and update.chat:
             return update.chat.type == 'channel'
+        return False
+
+# Add these missing filter classes
+class Admin(Filter):
+    """Filter for admin users (placeholder)"""
+    def check(self, update) -> bool:
+        # This requires admin list management
+        return False
+
+class State(Filter):
+    """Filter for user state (placeholder)"""
+    def __init__(self, state: str):
+        self.state = state
+    
+    def check(self, update) -> bool:
+        # This requires state management to be implemented
         return False
