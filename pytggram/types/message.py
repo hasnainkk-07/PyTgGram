@@ -19,8 +19,12 @@ class Message:
     @classmethod
     def from_dict(cls, data: dict) -> 'Message':
         """Create a Message object from API response"""
-        from_user = User.from_dict(data.get('from')) if data.get('from') else None
-        chat = Chat.from_dict(data.get('chat')) if data.get('chat') else None
+        from_user_data = data.get('from') or data.get('from_user')
+        from_user = User.from_dict(from_user_data) if from_user_data else None
+        
+        chat_data = data.get('chat')
+        chat = Chat.from_dict(chat_data) if chat_data else None
+        
         reply_to_message = cls.from_dict(data.get('reply_to_message')) if data.get('reply_to_message') else None
         
         # Determine media type
@@ -56,10 +60,14 @@ class Message:
             media_type=media_type
         )
     
-    def reply(self, text: str, **kwargs) -> 'Message':
-        """Reply to this message"""
-        # This will be implemented in the client
-        pass
+    async def reply(self, text: str, **kwargs):
+        """Reply to this message - Fixed to be async"""
+        # This will be implemented properly in the client
+        if self.chat:
+            from ...client import Client
+            # You'll need access to the client instance here
+            # For now, this is a placeholder
+            pass
     
     @property
     def is_command(self) -> bool:
@@ -74,13 +82,19 @@ class Message:
                 if entity.get('type') == 'bot_command':
                     command_text = self.text[entity.get('offset'):entity.get('offset') + entity.get('length')]
                     return command_text.split('@')[0]  # Remove bot username if present
+        elif self.is_command:
+            # Fallback: extract command from text
+            parts = self.text.split()
+            if parts:
+                command = parts[0].split('@')[0]  # Remove bot username
+                return command
         return None
     
     @property
     def command_args(self) -> Optional[str]:
         """Get command arguments"""
-        if self.is_command and self.entities:
-            for entity in self.entities:
-                if entity.get('type') == 'bot_command':
-                    return self.text[entity.get('offset') + entity.get('length'):].strip()
+        if self.is_command:
+            parts = self.text.split()
+            if len(parts) > 1:
+                return ' '.join(parts[1:])
         return None
