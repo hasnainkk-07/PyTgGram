@@ -8,6 +8,15 @@ class MessageHandler(Handler):
     
     async def handle(self, client, update: dict):
         """Handle a message update"""
-        message = Message.from_dict(update.get('message', {}))
-        if self.check(message):
-            await self.callback(client, message)
+        try:
+            message_data = update.get('message', {})
+            if not message_data:
+                return
+                
+            message = Message.from_dict(message_data)
+            if self.check(message):
+                await self.callback(client, message)
+        except Exception as e:
+            import logging
+            logger = logging.getLogger('pytggram')
+            logger.error(f"Error in message handler: {e}")
